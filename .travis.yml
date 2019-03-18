@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t davandela/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run davandela/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t davandela/multi-client ./client
+  - docker build -t davandela/multi-nginx ./nginx
+  - docker build -t davandela/multi-server ./client
+  - docker build -t davandela/multi-worker ./worker
+  
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  
+  - docker push davandela/multi-client
+  - docker push davandela/multi-nginx
+  - docker push davandela/multi-server
+  - docker push davandela/multi-worker
